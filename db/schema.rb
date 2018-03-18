@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180318233924) do
+ActiveRecord::Schema.define(version: 20180318235614) do
 
   create_table "teams", force: :cascade, options: "ENGINE=InnoDB DEFAULT CHARSET=utf8" do |t|
     t.string "name"
@@ -24,7 +24,7 @@ ActiveRecord::Schema.define(version: 20180318233924) do
     t.string "slack_user_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "slack_user_name"
+    t.string "user_name"
     t.integer "team_id"
   end
 

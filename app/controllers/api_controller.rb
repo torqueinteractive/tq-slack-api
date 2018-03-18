@@ -22,15 +22,6 @@ class ApiController < ApplicationController
   def success
     @params = params
 
-    unless @params[:access_token].blank?
-      User.find_or_create_by(
-        access_token: @params[:access_token],
-        slack_user_id: @params[:user_id],
-        slack_team_id: @params[:team_id],
-        slack_user_name: @params[:user_name]
-      )
-    end
-
     unless @params["code"].blank?
       params = {
         client_id: ENV["SLACK_CLIENT_ID"],
@@ -43,7 +34,7 @@ class ApiController < ApplicationController
       response = Net::HTTP.get_response(uri)
 
       if JSON.parse(response.body)["access_token"].blank? || JSON.parse(response.body)["user_id"].blank? || JSON.parse(response.body)["team_id"].blank?
-        @message = "We couldn't authorize you. Ask bowman about it."
+        @message = "We couldn't authorize you. Ask Bowman about it."
         @it_worked = false
       else
         @message = "Success!"
@@ -57,12 +48,18 @@ class ApiController < ApplicationController
         user = User.find_or_create_by(
           access_token: JSON.parse(response.body)["access_token"],
           slack_user_id: JSON.parse(response.body)["user_id"],
-          slack_user_name: JSON.parse(response.body)["user_name"]
+          user_name: JSON.parse(response.body)["user_name"]
         )
 
         team.users << user
       end
+    else
+      rener json: {
+        text: "Couldn't get the correct response from Slack. Ask Bowman or try again."
+      }
     end
+
+
   end
 
   def get_file_count
@@ -73,7 +70,7 @@ class ApiController < ApplicationController
 
       if user.blank?
         render json: {
-          text: "It doesn't look like you've authorized this app for use yet. Ask bowman about it or just go to https://slack-api.rebootcreate.com/api/enroll and sign in to authorize."
+          text: "It doesn't look like you've authorized this app for use yet. Ask Bowman about it or just go to https://slack-api.rebootcreate.com/api/enroll and sign in to authorize."
         }
       else
         params = {
@@ -91,6 +88,8 @@ class ApiController < ApplicationController
         end
 
         @total_storage_usage = @total_storage_usage.to_f / 1048576
+
+        user.update_attributes(user_name: @params['user_name'])
 
         render json: {
           text: "*Hello, #{@params['user_name']}.*\nYou've used *#{@total_storage_usage.round(2)} MB* of storage for *#{files.count} files*. That's *#{((@total_storage_usage/5000)*100).round(2)}%* of our capacity."
@@ -125,7 +124,7 @@ class ApiController < ApplicationController
 
       if user.blank?
         render json: {
-          text: "It doesn't look like you've authorized this app for use yet. Ask bowman about it or just go to https://slack-api.rebootcreate.com/api/enroll and sign in to authorize."
+          text: "It doesn't look like you've authorized this app for use yet. Ask Bowman about it or just go to https://slack-api.rebootcreate.com/api/enroll and sign in to authorize."
         }
       else
         render json: {
@@ -172,7 +171,7 @@ class ApiController < ApplicationController
 
       if user.blank?
         render json: {
-          text: "It doesn't look like you've authorized this app for use yet. Ask bowman about it or just go to https://slack-api.rebootcreate.com/api/enroll and sign in to authorize."
+          text: "It doesn't look like you've authorized this app for use yet. Ask Bowman about it or just go to https://slack-api.rebootcreate.com/api/enroll and sign in to authorize."
         }
       else
         case @params["callback_id"]
