@@ -20,26 +20,24 @@ class ApiController < ApplicationController
   end
 
   def success
-    @params = params
-
     logger.warn "-------------------------------------------------------------"
-    logger.warn @params
+    logger.warn params
     logger.warn "-------------------------------------------------------------"
 
-    unless @params[:access_token].blank?
+    unless params[:access_token].blank?
       User.find_or_create_by(
-        access_token: @params[:access_token],
-        slack_user_id: @params[:user_id],
-        slack_team_id: @params[:team_id],
-        slack_user_name: @params[:user_name]
+        access_token: params[:access_token],
+        slack_user_id: params[:user_id],
+        slack_team_id: params[:team_id],
+        slack_user_name: params[:user_name]
       )
     end
 
-    unless @params["code"].blank?
+    unless params["code"].blank?
       params = {
         client_id: ENV["SLACK_CLIENT_ID"],
         client_secret: ENV["SLACK_CLIENT_SECRET"],
-        code: @params[:code],
+        code: params[:code],
         redirect_uri: "#{request.base_url}/api/success"
       }
       uri = URI.parse("https://slack.com/api/oauth.access")
