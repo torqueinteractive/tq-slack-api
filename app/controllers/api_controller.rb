@@ -180,6 +180,7 @@ class ApiController < ApplicationController
         when "confirm_delete"
           logger.warn "we confirmed the delete"
           if @params["actions"][0]["value"] == "yes"
+            logger.warn "should fire worker"
             DestroyFilesWorker.perform_async(user.access_token, user.slack_user_id, @params["response_url"].to_s)
             render json: {
               text: "OK, we're working on it!"
