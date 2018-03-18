@@ -163,24 +163,17 @@ class ApiController < ApplicationController
     @params = params
     @params = JSON.parse(@params.as_json.first.last).as_json
 
-    logger.warn @params
-
     if @params["token"] == ENV["SLACK_VERIFICATION_TOKEN"]
-      logger.warn "is the token verified?"
       user = User.find_by(slack_user_id: @params["user"]["id"], slack_team_id: @params["team"]["id"])
 
       if user.blank?
-        logger.warn "is the user blank?"
         render json: {
           text: "It doesn't look like you've authorized this app for use yet. Ask bowman about it or just go to https://slack-api.rebootcreate.com/api/enroll and sign in to authorize."
         }
       else
-        logger.warn "user isn't blank"
         case @params["callback_id"]
         when "confirm_delete"
-          logger.warn "we confirmed the delete"
           if @params["actions"][0]["value"] == "yes"
-            logger.warn "should fire worker"
             DestroyFilesWorker.perform_async(user.access_token, user.slack_user_id, @params["response_url"].to_s)
             render json: {
               text: "OK, we're working on it!"
