@@ -5,7 +5,7 @@ class ApiController < ApplicationController
   require "uri"
 
   def index
-    @greeting = "Hello world!"
+    @greeting = "Slack API For File Management"
   end
 
   def enroll
