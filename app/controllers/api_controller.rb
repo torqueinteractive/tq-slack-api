@@ -60,7 +60,7 @@ class ApiController < ApplicationController
           slack_user_name: JSON.parse(response.body)["user_name"]
         )
 
-        team << user
+        team.users << user
       end
     end
   end
