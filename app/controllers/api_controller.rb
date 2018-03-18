@@ -102,13 +102,19 @@ class ApiController < ApplicationController
     if @params["token"] == ENV["SLACK_VERIFICATION_TOKEN"]
       user = User.find_by(slack_user_id: @params["user_id"], slack_team_id: @params["team_id"])
 
+      if @params["text"].blank?
+        age_to_start = 20
+      else
+        age_to_start = @params["text"]
+      end
+
       if user.blank?
         render json: {
           text: "It doesn't look like you've authorized this app for use yet. Ask bowman about it or just go to https://slack-api.rebootcreate.com/api/enroll and sign in to authorize."
         }
       else
         render json: {
-          "text": "This will remove files you've shared that are older than 20 days. Are you sure?",
+          "text": "This will remove files you've shared that are older than #{age_to_start.to_i} days. Are you sure?",
           "attachments": [
             {
               "fallback": "Confirm delete",
@@ -121,10 +127,10 @@ class ApiController < ApplicationController
                     "text": "Delete Files",
                     "type": "button",
                     "style": "primary",
-                    "value": "yes"
+                    "value": age_to_start
                 },
                 {
-                    "name": "confirm_delete",
+                    "name": "refuse_delete",
                     "text": "Cancel",
                     "type": "button",
                     "style": "danger",
@@ -156,20 +162,13 @@ class ApiController < ApplicationController
       else
         case @params["callback_id"]
         when "confirm_delete"
-          if @params["actions"][0]["value"] == "yes"
-            logger.warn @params
-
-            if @params["text"].blank?
-              age_to_start = 20
-            else
-              logger.warn @params["text"]
-              age_to_start = @params["text"]
-            end
-            DestroyFilesWorker.perform_async(user.access_token, user.slack_user_id, @params["response_url"].to_s, age_to_start)
+          logger.warn @params
+          unless @params["actions"]["confirm_delete"].blank?
+            DestroyFilesWorker.perform_async(user.access_token, user.slack_user_id, @params["response_url"].to_s, @params["actions"]["confirm_delete"]["value"])
             render json: {
               text: "OK, we're working on it!"
             }, status: :ok
-          elsif @params["actions"][0]["value"] == "no"
+          else
             render json: {
               text: "Request has been cancelled."
             }, status: :ok
