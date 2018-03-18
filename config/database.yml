@@ -1,0 +1,7 @@
+development:
+  adapter: mysql2
+  encoding: utf8
+  database: slack_api_development
+  pool: 5
+  username: root
+  password:

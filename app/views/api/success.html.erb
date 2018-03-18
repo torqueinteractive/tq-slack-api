@@ -1,0 +1,5 @@
+<h1><%= @message %></h1>
+<% if @it_worked %>
+  <h4>From now on, just go into Slack and type /tq-file-count to see your file usage!</h4>
+  <h4>You can also use /tq-clean-files to remove files you've shared that are over 20 days old. Since we have limited Slack storage, try to run this sometimes to help keep things cleaned out!</h4>
+<% end %>
