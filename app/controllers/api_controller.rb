@@ -22,6 +22,10 @@ class ApiController < ApplicationController
   def success
     @params = params
 
+    logger.warn "-------------------------------------------------------------"
+    logger.warn @params
+    logger.warn "-------------------------------------------------------------"
+
     unless @params[:access_token].blank?
       User.find_or_create_by(
         access_token: @params[:access_token],
