@@ -3,7 +3,6 @@ class DestroyFilesWorker
   include HTTParty
 
   def perform(user_access_token, slack_user_id, response_url)
-    logger.warn "WORKER TEST - made it here!"
     age_to_start = (Time.now - 20 * 24 * 60 * 60).to_i # 20 days ago
     params = {
       token: user_access_token,
