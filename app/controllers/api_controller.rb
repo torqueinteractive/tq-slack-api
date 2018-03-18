@@ -163,7 +163,7 @@ class ApiController < ApplicationController
         case @params["callback_id"]
         when "confirm_delete"
           logger.warn @params
-          unless @params["actions"][0]["name"] == "confirm_delete"
+          if @params["actions"][0]["name"] == "confirm_delete"
             DestroyFilesWorker.perform_async(user.access_token, user.slack_user_id, @params["response_url"].to_s, @params["actions"][0]["value"])
             render json: {
               text: "OK, we're working on it!"
