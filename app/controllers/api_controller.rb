@@ -58,23 +58,6 @@ class ApiController < ApplicationController
     end
   end
 
-  def view_files
-    @files = []
-    User.all.each do |user|
-      ts_to = (Time.now - 20 * 24 * 60 * 60).to_i # 20 days ago
-      params = {
-        token: user.access_token,
-        ts_to: ts_to,
-        count: 1000,
-        user: user.slack_user_id
-      }
-      uri = URI.parse("https://slack.com/api/files.list")
-      uri.query = URI.encode_www_form(params)
-      response = Net::HTTP.get_response(uri)
-      @files << JSON.parse(response.body)["files"]
-    end
-  end
-
   def get_file_count
     @params = params
 
@@ -174,7 +157,12 @@ class ApiController < ApplicationController
         case @params["callback_id"]
         when "confirm_delete"
           if @params["actions"][0]["value"] == "yes"
-            DestroyFilesWorker.perform_async(user.access_token, user.slack_user_id, @params["response_url"].to_s)
+            if @params["text"].blank?
+              age_to_start = 20
+            else
+              age_to_start = @params["text"]
+            end
+            DestroyFilesWorker.perform_async(user.access_token, user.slack_user_id, @params["response_url"].to_s, age_to_start)
             render json: {
               text: "OK, we're working on it!"
             }, status: :ok
