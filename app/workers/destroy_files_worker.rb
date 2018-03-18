@@ -11,7 +11,7 @@ class DestroyFilesWorker
       age_to_start = 20
     end
 
-    result_message = "It doesn't look like you have any files older than #{age_to_start} days - nice job!"
+    result_message = "We couldn't find any files older than #{age_to_start} days"
 
     computed_age_to_start = (Time.now - age_to_start * 24 * 60 * 60).to_i
     params = {
