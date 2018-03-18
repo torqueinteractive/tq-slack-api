@@ -108,6 +108,14 @@ class ApiController < ApplicationController
         age_to_start = @params["text"]
       end
 
+      if age_to_start == "0"
+        age_to_start = 0
+      elsif age_to_start !~ /\D/
+        age_to_start = age_to_start.to_i
+      else
+        age_to_start = 20
+      end
+
       if user.blank?
         render json: {
           text: "It doesn't look like you've authorized this app for use yet. Ask bowman about it or just go to https://slack-api.rebootcreate.com/api/enroll and sign in to authorize."
