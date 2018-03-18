@@ -49,18 +49,18 @@ class ApiController < ApplicationController
         @message = "Success!"
         @it_worked = true
 
-        logger.warn "-------------------------------------------------------------"
-        logger.warn JSON.parse(response.body)
-        logger.warn "-------------------------------------------------------------"
-        logger.warn JSON.parse(response)
-        logger.warn "-------------------------------------------------------------"
+        team = Team.find_or_create_by(
+          name: JSON.parse(response.body)["team_name"],
+          slack_team_id: JSON.parse(response.body)["team_id"]
+        )
 
-        User.find_or_create_by(
+        user = User.find_or_create_by(
           access_token: JSON.parse(response.body)["access_token"],
           slack_user_id: JSON.parse(response.body)["user_id"],
-          slack_team_id: JSON.parse(response.body)["team_id"],
           slack_user_name: JSON.parse(response.body)["user_name"]
         )
+
+        team << user
       end
     end
   end
@@ -69,7 +69,7 @@ class ApiController < ApplicationController
     @params = params
 
     if @params["token"] == ENV["SLACK_VERIFICATION_TOKEN"]
-      user = User.find_by(slack_user_id: @params["user_id"], slack_team_id: @params["team_id"])
+      user = Team.find_by(slack_team_id: @params["team_id"]).users.find_by(slack_user_id: @params["user_id"])
 
       if user.blank?
         render json: {
@@ -107,7 +107,7 @@ class ApiController < ApplicationController
     @params = params
 
     if @params["token"] == ENV["SLACK_VERIFICATION_TOKEN"]
-      user = User.find_by(slack_user_id: @params["user_id"], slack_team_id: @params["team_id"])
+      user = Team.find_by(slack_team_id: @params["team_id"]).users.find_by(slack_user_id: @params["user_id"])
 
       if @params["text"].blank?
         age_to_start = 20
@@ -168,7 +168,7 @@ class ApiController < ApplicationController
     @params = JSON.parse(@params.as_json.first.last).as_json
 
     if @params["token"] == ENV["SLACK_VERIFICATION_TOKEN"]
-      user = User.find_by(slack_user_id: @params["user"]["id"], slack_team_id: @params["team"]["id"])
+      user = Team.find_by(slack_team_id: @params["team"]["id"]).users.find_by(slack_user_id: @params["user"]["id"])
 
       if user.blank?
         render json: {
