@@ -50,9 +50,11 @@ class ApiController < ApplicationController
         @it_worked = true
 
         logger.warn "-------------------------------------------------------------"
-        logger.warn @params
+        logger.warn JSON.parse(response.body)
         logger.warn "-------------------------------------------------------------"
-        
+        logger.warn JSON.parse(response)
+        logger.warn "-------------------------------------------------------------"
+
         User.find_or_create_by(
           access_token: JSON.parse(response.body)["access_token"],
           slack_user_id: JSON.parse(response.body)["user_id"],
