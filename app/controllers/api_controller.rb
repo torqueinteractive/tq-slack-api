@@ -157,9 +157,12 @@ class ApiController < ApplicationController
         case @params["callback_id"]
         when "confirm_delete"
           if @params["actions"][0]["value"] == "yes"
+            logger.warn @params
+
             if @params["text"].blank?
               age_to_start = 20
             else
+              logger.warn @params["text"]
               age_to_start = @params["text"]
             end
             DestroyFilesWorker.perform_async(user.access_token, user.slack_user_id, @params["response_url"].to_s, age_to_start)
