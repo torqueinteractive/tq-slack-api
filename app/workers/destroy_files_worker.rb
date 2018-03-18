@@ -11,6 +11,8 @@ class DestroyFilesWorker
       age_to_start = 20
     end
 
+    result_message = "It doesn't look like you have any files older than #{age_to_start} days - nice job!"
+
     computed_age_to_start = (Time.now - age_to_start * 24 * 60 * 60).to_i
     params = {
       token: user_access_token,
@@ -44,7 +46,7 @@ class DestroyFilesWorker
     else
       HTTParty.post(response_url,
         body: {
-          text: "It doesn't look like you have any files older than 20 days - nice job!"
+          text: result_message
         }.to_json,
         headers: { 'Content-Type' => 'application/json' }
       )
