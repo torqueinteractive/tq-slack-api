@@ -1,6 +1,8 @@
 development:
   :concurrency: 5
 production:
+  :verbose: true
+  :logfile: ./log/sidekiq.log
   :concurrency: 20
 :queues:
   - default
