@@ -1,8 +1,5 @@
 class ApiController < ApplicationController
   skip_before_action :verify_authenticity_token
-  require "net/http"
-  require "json"
-  require "uri"
 
   def index
     @greeting = "Slack API For File Management"

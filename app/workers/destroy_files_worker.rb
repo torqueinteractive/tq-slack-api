@@ -1,6 +1,5 @@
 class DestroyFilesWorker
   include Sidekiq::Worker
-  include HTTParty
 
   def perform(user_access_token, slack_user_id, response_url, age_to_start)
     if age_to_start == "0"

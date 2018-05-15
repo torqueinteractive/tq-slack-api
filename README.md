@@ -1,24 +1,7 @@
-# README
+Simple tool makes it easier for your team to self manage their file usage! Just use these slash commands within your slack chat window.
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+`/tq-file-count`
+Gets your current file usage
 
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+`/tq-clean-files`
+Deletes files older than 20 days, by default. You can specify how far back to go by passing it a number, like `/tq-clean-files 7` to clear files older than 7 days.
