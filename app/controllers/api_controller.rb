@@ -36,16 +36,17 @@ class ApiController < ApplicationController
       else
         @message = "Success!"
         @it_worked = true
+        json_response = JSON.parse(response.body)
 
         team = Team.find_or_create_by(
-          name: JSON.parse(response.body)["team_name"],
-          slack_team_id: JSON.parse(response.body)["team_id"]
+          name: json_response["team_name"],
+          slack_team_id: json_response["team_id"]
         )
 
         user = User.find_or_create_by(
-          access_token: JSON.parse(response.body)["access_token"],
-          slack_user_id: JSON.parse(response.body)["user_id"],
-          user_name: JSON.parse(response.body)["user_name"]
+          access_token: json_response["access_token"],
+          slack_user_id: json_response["user_id"],
+          user_name: json_response["user_name"]
         )
 
         team.users << user

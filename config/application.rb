@@ -10,5 +10,6 @@ module TqSlackApi
     ENV['SLACK_CLIENT_ID'] = Rails.application.secrets.slack_client_id
     ENV['SLACK_CLIENT_SECRET'] = Rails.application.secrets.slack_client_secret
     ENV['SLACK_VERIFICATION_TOKEN'] = Rails.application.secrets.slack_verification_token
+    ENV['SLACK_ACCESS_TOKEN_KEY'] = Rails.application.secrets.access_token_key
   end
 end
