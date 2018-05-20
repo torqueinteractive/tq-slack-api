@@ -57,9 +57,11 @@ class ApiController < ApplicationController
   end
 
   def get_file_count
-    puts params
-    puts "params above and below -----------------------------"
-    puts params
+    logger.warn "params above and below -----------------------------"
+    logger.warn params
+    logger.warn "params above and below -----------------------------"
+    logger.warn params
+    logger.warn "params above and below -----------------------------"
     if params["token"] == ENV["SLACK_VERIFICATION_TOKEN"]
       user = Team.find_by(slack_team_id: params["team_id"]).users.find_by(slack_user_id: params["user_id"])
 
@@ -84,7 +86,7 @@ class ApiController < ApplicationController
 
         @total_storage_usage = @total_storage_usage.to_f / 1048576
 
-        user.update_attributes(user_name: @params['user_name'])
+        user.update_attributes(user_name: params['user_name'])
 
         render json: {
           text: "*Hello, #{params['user_name']}.*\nYou've used *#{@total_storage_usage.round(2)} MB* of storage for *#{files.count} files*. That's *#{((@total_storage_usage/5000)*100).round(2)}%* of our capacity."
