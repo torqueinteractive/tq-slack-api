@@ -2,7 +2,7 @@ class ApiController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def index
-    @greeting = "Slack API For File Management"
+    @greeting = "Slack API For File Management!"
   end
 
   def enroll
@@ -17,26 +17,24 @@ class ApiController < ApplicationController
   end
 
   def success
-    @params = params
-
-    unless @params["code"].blank?
-      params = {
+    unless params["code"].blank?
+      slack_request_params = {
         client_id: ENV["SLACK_CLIENT_ID"],
         client_secret: ENV["SLACK_CLIENT_SECRET"],
-        code: @params[:code],
+        code: params[:code],
         redirect_uri: "#{request.base_url}/api/success"
       }
       uri = URI.parse("https://slack.com/api/oauth.access")
-      uri.query = URI.encode_www_form(params)
+      uri.query = URI.encode_www_form(slack_request_params)
       response = Net::HTTP.get_response(uri)
+      json_response = JSON.parse(response.body)
 
-      if JSON.parse(response.body)["access_token"].blank? || JSON.parse(response.body)["user_id"].blank? || JSON.parse(response.body)["team_id"].blank?
+      if json_response["access_token"].blank? || json_response["user_id"].blank? || json_response["team_id"].blank?
         @message = "We couldn't authorize you. Ask Bowman about it."
         @it_worked = false
       else
         @message = "Success!"
         @it_worked = true
-        json_response = JSON.parse(response.body)
 
         team = Team.find_or_create_by(
           name: json_response["team_name"],
@@ -56,28 +54,24 @@ class ApiController < ApplicationController
         text: "Couldn't get the correct response from Slack. Ask Bowman or try again."
       }
     end
-
-
   end
 
   def get_file_count
-    @params = params
-
-    if @params["token"] == ENV["SLACK_VERIFICATION_TOKEN"]
-      user = Team.find_by(slack_team_id: @params["team_id"]).users.find_by(slack_user_id: @params["user_id"])
+    if params["token"] == ENV["SLACK_VERIFICATION_TOKEN"]
+      user = Team.find_by(slack_team_id: params["team_id"]).users.find_by(slack_user_id: params["user_id"])
 
       if user.blank?
         render json: {
           text: "It doesn't look like you've authorized this app for use yet. Ask Bowman about it or just go to https://slack-api.rebootcreate.com/api/enroll and sign in to authorize."
         }
       else
-        params = {
+        slack_request_params = {
           token: user.token,
           count: 1000,
           user: user.slack_user_id
         }
         uri = URI.parse("https://slack.com/api/files.list")
-        uri.query = URI.encode_www_form(params)
+        uri.query = URI.encode_www_form(slack_request_params)
         response = Net::HTTP.get_response(uri)
         @total_storage_usage = 0
         files = JSON.parse(response.body)["files"]
@@ -90,7 +84,7 @@ class ApiController < ApplicationController
         user.update_attributes(user_name: @params['user_name'])
 
         render json: {
-          text: "*Hello, #{@params['user_name']}.*\nYou've used *#{@total_storage_usage.round(2)} MB* of storage for *#{files.count} files*. That's *#{((@total_storage_usage/5000)*100).round(2)}%* of our capacity."
+          text: "*Hello, #{params['user_name']}.*\nYou've used *#{@total_storage_usage.round(2)} MB* of storage for *#{files.count} files*. That's *#{((@total_storage_usage/5000)*100).round(2)}%* of our capacity."
         }
       end
     else
