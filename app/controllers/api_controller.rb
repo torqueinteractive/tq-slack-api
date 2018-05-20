@@ -44,7 +44,7 @@ class ApiController < ApplicationController
         )
 
         user = User.find_or_create_by(
-          access_token: json_response["access_token"],
+          token: json_response["access_token"],
           slack_user_id: json_response["user_id"],
           user_name: json_response["user_name"]
         )
@@ -72,7 +72,7 @@ class ApiController < ApplicationController
         }
       else
         params = {
-          token: user.access_token,
+          token: user.token,
           count: 1000,
           user: user.slack_user_id
         }
@@ -176,7 +176,7 @@ class ApiController < ApplicationController
         when "confirm_delete"
           logger.warn @params
           if @params["actions"][0]["name"] == "confirm_delete"
-            DestroyFilesWorker.perform_async(user.access_token, user.slack_user_id, @params["response_url"].to_s, @params["actions"][0]["value"])
+            DestroyFilesWorker.perform_async(user.token, user.slack_user_id, @params["response_url"].to_s, @params["actions"][0]["value"])
             render json: {
               text: "OK, we're working on it!"
             }, status: :ok
