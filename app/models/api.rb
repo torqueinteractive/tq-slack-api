@@ -2,7 +2,8 @@ class Api < ActiveRecord::Base
 
   private
 
-  def self.slack_api_request(type: "request_access", *args)
+  def self.slack_api_request(type, *args)
+    type = type || "request_access"
     case type
     when "request_access"
       logger.warn "requesting auth access"
