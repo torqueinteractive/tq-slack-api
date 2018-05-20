@@ -57,11 +57,6 @@ class ApiController < ApplicationController
   end
 
   def get_file_count
-    logger.warn "params above and below -----------------------------"
-    logger.warn params
-    logger.warn "params above and below -----------------------------"
-    logger.warn params
-    logger.warn "params above and below -----------------------------"
     if params["token"] == ENV["SLACK_VERIFICATION_TOKEN"]
       user = Team.find_by(slack_team_id: params["team_id"]).users.find_by(slack_user_id: params["user_id"])
 
