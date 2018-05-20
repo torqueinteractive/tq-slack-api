@@ -6,13 +6,13 @@ class ApiController < ApplicationController
   end
 
   def enroll
-    params = {
+    slack_request_params = {
       client_id: ENV["SLACK_CLIENT_ID"],
       scope: "files:read files:write:user",
       redirect_uri: "#{request.base_url}/api/success"
     }
     uri = URI.parse("https://slack.com/oauth/authorize")
-    uri.query = URI.encode_www_form(params)
+    uri.query = URI.encode_www_form(slack_request_params)
     redirect_to uri.to_s
   end
 
@@ -65,26 +65,27 @@ class ApiController < ApplicationController
           text: "It doesn't look like you've authorized this app for use yet. Ask Bowman about it or just go to https://slack-api.rebootcreate.com/api/enroll and sign in to authorize."
         }
       else
-        slack_request_params = {
-          token: user.token,
-          count: 1000,
-          user: user.slack_user_id
-        }
-        uri = URI.parse("https://slack.com/api/files.list")
-        uri.query = URI.encode_www_form(slack_request_params)
-        response = Net::HTTP.get_response(uri)
-        @total_storage_usage = 0
+        response = Api.slack_api_request(
+                    type: "list_files",
+                    token: user.token,
+                    count: 1000,
+                    user: user.slack_user_id,
+                    endpoint: "https://slack.com/api/files.list"
+                   )
+
+         # the final total storage is based on Slack's free plan max size - 5GB
+        total_storage_usage = 0
         files = JSON.parse(response.body)["files"]
         files.each do |file|
-          @total_storage_usage += file["size"]
+          total_storage_usage += file["size"]
         end
+        total_storage_usage = total_storage_usage.to_f / 1048576
 
-        @total_storage_usage = @total_storage_usage.to_f / 1048576
-
+        # this response includes their user name, so let's make sure we have it and it's up to date
         user.update_attributes(user_name: params['user_name'])
 
         render json: {
-          text: "*Hello, #{params['user_name']}.*\nYou've used *#{@total_storage_usage.round(2)} MB* of storage for *#{files.count} files*. That's *#{((@total_storage_usage/5000)*100).round(2)}%* of our capacity."
+          text: "*Hello, #{params['user_name']}.*\nYou've used *#{total_storage_usage.round(2)} MB* of storage for *#{files.count} files*. That's *#{((total_storage_usage/5000)*100).round(2)}%* of our capacity."
         }
       end
     else
