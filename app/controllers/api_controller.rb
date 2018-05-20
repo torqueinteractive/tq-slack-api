@@ -102,15 +102,13 @@ class ApiController < ApplicationController
   end
 
   def destroy_files
-    @params = params
+    if params["token"] == ENV["SLACK_VERIFICATION_TOKEN"]
+      user = Team.find_by(slack_team_id: params["team_id"]).users.find_by(slack_user_id: params["user_id"])
 
-    if @params["token"] == ENV["SLACK_VERIFICATION_TOKEN"]
-      user = Team.find_by(slack_team_id: @params["team_id"]).users.find_by(slack_user_id: @params["user_id"])
-
-      if @params["text"].blank?
+      if params["text"].blank?
         age_to_start = 20
       else
-        age_to_start = @params["text"]
+        age_to_start = params["text"]
       end
 
       if age_to_start == "0"
@@ -162,8 +160,9 @@ class ApiController < ApplicationController
   end
 
   def manage_interactions
-    @params = params
-    @params = JSON.parse(@params.as_json.first.last).as_json
+    # json_params = JSON.parse(params.as_json.first.last).as_json
+
+    @params = params.as_json.first.last
 
     if @params["token"] == ENV["SLACK_VERIFICATION_TOKEN"]
       user = Team.find_by(slack_team_id: @params["team"]["id"]).users.find_by(slack_user_id: @params["user"]["id"])
@@ -183,7 +182,7 @@ class ApiController < ApplicationController
             }, status: :ok
           else
             render json: {
-              text: "Request has been cancelled."
+              text: "OK, request cancelled!"
             }, status: :ok
           end
         end
