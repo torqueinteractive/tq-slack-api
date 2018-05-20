@@ -6,51 +6,51 @@ class ApiController < ApplicationController
   end
 
   def enroll
-    slack_request_params = {
-      client_id: ENV["SLACK_CLIENT_ID"],
-      scope: "files:read files:write:user",
-      redirect_uri: "#{request.base_url}/api/success"
-    }
-    uri = URI.parse("https://slack.com/oauth/authorize")
-    uri.query = URI.encode_www_form(slack_request_params)
-    redirect_to uri.to_s
+    slack_enroll_url = Api.slack_api_request(
+                         type: "enroll",
+                         scope: "files:read files:write:user"
+                       )
+    redirect_to slack_enroll_url
   end
 
   def success
     unless params["code"].blank?
-      slack_request_params = {
-        client_id: ENV["SLACK_CLIENT_ID"],
-        client_secret: ENV["SLACK_CLIENT_SECRET"],
-        code: params[:code],
-        redirect_uri: "#{request.base_url}/api/success"
-      }
-      uri = URI.parse("https://slack.com/api/oauth.access")
-      uri.query = URI.encode_www_form(slack_request_params)
-      response = Net::HTTP.get_response(uri)
-      json_response = JSON.parse(response.body)
+      response = Api.slack_api_request(
+                   type: "complete_oath",
+                   code: params[:code],
+                   endpoint: "https://slack.com/api/oauth.access"
+                 )
 
-      if json_response["access_token"].blank? || json_response["user_id"].blank? || json_response["team_id"].blank?
-        @message = "We couldn't authorize you. Ask Bowman about it."
-        @it_worked = false
+      if response.code == "200"
+        json_response = JSON.parse(response.body)
+
+        if json_response["access_token"].blank? || json_response["user_id"].blank? || json_response["team_id"].blank?
+          @message = "We couldn't authorize you. Ask Bowman about it."
+          @it_worked = false
+        else
+          @message = "Success!"
+          @it_worked = true
+
+          team = Team.find_or_create_by(
+            name: json_response["team_name"],
+            slack_team_id: json_response["team_id"]
+          )
+
+          user = User.find_or_create_by(
+            token: json_response["access_token"],
+            slack_user_id: json_response["user_id"],
+            user_name: json_response["user_name"]
+          )
+
+          team.users << user
+        end
       else
-        @message = "Success!"
-        @it_worked = true
-
-        team = Team.find_or_create_by(
-          name: json_response["team_name"],
-          slack_team_id: json_response["team_id"]
-        )
-
-        user = User.find_or_create_by(
-          token: json_response["access_token"],
-          slack_user_id: json_response["user_id"],
-          user_name: json_response["user_name"]
-        )
-
-        team.users << user
+        render json: {
+          text: "Couldn't get the correct response from Slack. Ask Bowman or try again."
+        }
       end
     else
-      rener json: {
+      render json: {
         text: "Couldn't get the correct response from Slack. Ask Bowman or try again."
       }
     end
@@ -73,20 +73,26 @@ class ApiController < ApplicationController
                     endpoint: "https://slack.com/api/files.list"
                    )
 
-         # the final total storage is based on Slack's free plan max size - 5GB
-        total_storage_usage = 0
-        files = JSON.parse(response.body)["files"]
-        files.each do |file|
-          total_storage_usage += file["size"]
+        if response.code == "200"
+          # the final total storage is based on Slack's free plan max size - 5GB
+          total_storage_usage = 0
+          files = JSON.parse(response.body)["files"]
+          files.each do |file|
+            total_storage_usage += file["size"]
+          end
+          total_storage_usage = total_storage_usage.to_f / 1048576
+
+          # this response includes their user name, so let's make sure we have it and it's up to date
+          user.update_attributes(user_name: params['user_name'])
+
+          render json: {
+            text: "*Hello, #{params['user_name']}.*\nYou've used *#{total_storage_usage.round(2)} MB* of storage for *#{files.count} files*. That's *#{((total_storage_usage/5000)*100).round(2)}%* of our capacity."
+          }
+        else
+          render json: {
+            text: "Couldn't get the correct response from Slack. Ask Bowman or try again."
+          }
         end
-        total_storage_usage = total_storage_usage.to_f / 1048576
-
-        # this response includes their user name, so let's make sure we have it and it's up to date
-        user.update_attributes(user_name: params['user_name'])
-
-        render json: {
-          text: "*Hello, #{params['user_name']}.*\nYou've used *#{total_storage_usage.round(2)} MB* of storage for *#{files.count} files*. That's *#{((total_storage_usage/5000)*100).round(2)}%* of our capacity."
-        }
       end
     else
       render json: {
