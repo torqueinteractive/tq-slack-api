@@ -160,6 +160,9 @@ class ApiController < ApplicationController
   end
 
   def manage_interactions
+    logger.warn "-------------------------------------------------------------"
+    logger.warn params
+    logger.warn "-------------------------------------------------------------"
     # json_params = JSON.parse(params.as_json.first.last).as_json
 
     @params = params.as_json.first.last
