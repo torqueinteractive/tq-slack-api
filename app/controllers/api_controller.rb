@@ -2,7 +2,6 @@ class ApiController < ApplicationController
   skip_before_action :verify_authenticity_token
 
   def index
-    @greeting = "Slack API For File Management!"
   end
 
   def enroll
@@ -17,8 +16,7 @@ class ApiController < ApplicationController
     unless params["code"].blank?
       response = Api.slack_api_request(
                    type: "complete_oath",
-                   code: params[:code],
-                   endpoint: "https://slack.com/api/oauth.access"
+                   code: params[:code]
                  )
 
       if response.code == "200"
@@ -66,11 +64,10 @@ class ApiController < ApplicationController
         }
       else
         response = Api.slack_api_request(
-                    type: "list_files",
-                    token: user.token,
-                    count: 1000,
-                    user: user.slack_user_id,
-                    endpoint: "https://slack.com/api/files.list"
+                     type: "list_files",
+                     token: user.token,
+                     count: 1000,
+                     user: user.slack_user_id
                    )
 
         if response.code == "200"
@@ -160,26 +157,20 @@ class ApiController < ApplicationController
   end
 
   def manage_interactions
-    logger.warn "-------------------------------------------------------------"
-    logger.warn params
-    logger.warn "-------------------------------------------------------------"
-    # json_params = JSON.parse(params.as_json.first.last).as_json
+    ui_response = JSON.parse(params['payload'])
 
-    @params = params.as_json.first.last
-
-    if @params["token"] == ENV["SLACK_VERIFICATION_TOKEN"]
-      user = Team.find_by(slack_team_id: @params["team"]["id"]).users.find_by(slack_user_id: @params["user"]["id"])
+    if ui_response["token"] == ENV["SLACK_VERIFICATION_TOKEN"]
+      user = Team.find_by(slack_team_id: ui_response["team"]["id"]).users.find_by(slack_user_id: ui_response["user"]["id"])
 
       if user.blank?
         render json: {
           text: "It doesn't look like you've authorized this app for use yet. Ask Bowman about it or just go to https://slack-api.rebootcreate.com/api/enroll and sign in to authorize."
         }
       else
-        case @params["callback_id"]
+        case ui_response["callback_id"]
         when "confirm_delete"
-          logger.warn @params
-          if @params["actions"][0]["name"] == "confirm_delete"
-            DestroyFilesWorker.perform_async(user.token, user.slack_user_id, @params["response_url"].to_s, @params["actions"][0]["value"])
+          if ui_response["actions"][0]["name"] == "confirm_delete"
+            DestroyFilesWorker.perform_async(user.token, user.slack_user_id, ui_response["response_url"].to_s, ui_response["actions"][0]["value"])
             render json: {
               text: "OK, we're working on it!"
             }, status: :ok

@@ -21,15 +21,26 @@ class Api < ActiveRecord::Base
         code: params[:code],
         redirect_uri: api_success_path
       }
+      endpoint = "https://slack.com/api/oauth.access"
     when "list_files"
       slack_request_params = {
         token: args[:token],
+        ts_to: args[:ts_to] || "now",
         count: args[:count],
         user: args[:user]
       }
+      endpoint = "https://slack.com/api/files.list"
+    when "delete_files"
+      slack_request_params = {
+        token: args[:token],
+        file: args[:file]
+      }
+      endpoint = "https://slack.com/api/files.delete"
     end
 
-    uri = URI.parse(args[:endpoint])
+    endpoint = args[:endpoint] || endpoint
+
+    uri = URI.parse(endpoint)
     uri.query = URI.encode_www_form(slack_request_params)
     response = Net::HTTP.get_response(uri)
 

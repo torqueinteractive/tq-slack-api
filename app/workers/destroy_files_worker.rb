@@ -13,27 +13,25 @@ class DestroyFilesWorker
     result_message = "No file found that's older than #{age_to_start} days!"
 
     computed_age_to_start = (Time.now - age_to_start * 24 * 60 * 60).to_i
-    params = {
-      token: user_access_token,
-      ts_to: computed_age_to_start,
-      count: 1000,
-      user: slack_user_id
-    }
-    uri = URI.parse("https://slack.com/api/files.list")
-    uri.query = URI.encode_www_form(params)
-    response = Net::HTTP.get_response(uri)
+
+    response = Api.slack_api_request(
+                 type: "list_files",
+                 token: user_access_token,
+                 ts_to: computed_age_to_start,
+                 count: 1000,
+                 user: slack_user_id
+               )
+
     files = JSON.parse(response.body)["files"]
 
     unless files.empty?
       file_ids = files.map { |f| f['id'] }
       file_ids.each do |file_id|
-        params = {
-          token: user_access_token,
-          file: file_id
-        }
-        uri = URI.parse('https://slack.com/api/files.delete')
-        uri.query = URI.encode_www_form(params)
-        response = Net::HTTP.get_response(uri)
+        Api.slack_api_request(
+                     type: "delete_files",
+                     token: user_access_token,
+                     file: file_id
+                   )
       end
 
       HTTParty.post(response_url,
