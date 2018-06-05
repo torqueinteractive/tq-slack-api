@@ -1,6 +1,5 @@
-class Api < ActiveRecord::Base
-
-  private
+module Api
+  include ActiveSupport::Concern
 
   def self.slack_api_request(type: "enroll", **args)
     case type
@@ -46,5 +45,4 @@ class Api < ActiveRecord::Base
 
     return response
   end
-
 end

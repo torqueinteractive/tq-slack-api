@@ -1,5 +1,6 @@
 class DestroyFilesWorker
   include Sidekiq::Worker
+  include Api
 
   def perform(user_access_token, slack_user_id, response_url, age_to_start)
     if age_to_start == "0"
@@ -14,7 +15,7 @@ class DestroyFilesWorker
 
     computed_age_to_start = (Time.now - age_to_start * 24 * 60 * 60).to_i
 
-    response = Api.slack_api_request(
+    response = slack_api_request(
                  type: "list_files",
                  token: user_access_token,
                  ts_to: computed_age_to_start,
@@ -27,7 +28,7 @@ class DestroyFilesWorker
     unless files.empty?
       file_ids = files.map { |f| f['id'] }
       file_ids.each do |file_id|
-        Api.slack_api_request(
+        slack_api_request(
                      type: "delete_files",
                      token: user_access_token,
                      file: file_id

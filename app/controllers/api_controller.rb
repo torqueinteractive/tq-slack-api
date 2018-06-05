@@ -1,11 +1,13 @@
 class ApiController < ApplicationController
+  include Api
+
   skip_before_action :verify_authenticity_token
 
   def index
   end
 
   def enroll
-    slack_enroll_url = Api.slack_api_request(
+    slack_enroll_url = slack_api_request(
                          type: "enroll",
                          scope: "files:read files:write:user"
                        )
@@ -14,7 +16,7 @@ class ApiController < ApplicationController
 
   def success
     unless params["code"].blank?
-      response = Api.slack_api_request(
+      response = slack_api_request(
                    type: "complete_oath",
                    code: params[:code]
                  )
@@ -63,7 +65,7 @@ class ApiController < ApplicationController
           text: "It doesn't look like you've authorized this app for use yet. Ask Bowman about it or just go to https://slack-api.rebootcreate.com/api/enroll and sign in to authorize."
         }
       else
-        response = Api.slack_api_request(
+        response = slack_api_request(
                      type: "list_files",
                      token: user.token,
                      count: 1000,
@@ -136,8 +138,7 @@ class ApiController < ApplicationController
                     "type": "button",
                     "style": "primary",
                     "value": age_to_start
-                },
-                {
+                }, {
                     "name": "refuse_delete",
                     "text": "Cancel",
                     "type": "button",
