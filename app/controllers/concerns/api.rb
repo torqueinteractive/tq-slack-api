@@ -1,7 +1,7 @@
 module Api
   include ActiveSupport::Concern
 
-  def self.slack_api_request(type: "enroll", **args)
+  def slack_api_request(type: "enroll", **args)
     case type
       # enroll is a bit of an edge case, so we'll just return right from within
     when "enroll"
