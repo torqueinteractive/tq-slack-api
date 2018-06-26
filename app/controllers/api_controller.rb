@@ -196,9 +196,9 @@ class ApiController < ApplicationController
     mg_client = Mailgun::Client.new ENV["MAILGUN_API_KEY"]
 
     message_params =  { from: "jonathanrbowman@me.com",
-                        to:   "jonathan.bowman@ttigroupna.com",
-                        subject: "This is a litmus test",
-                        text:    "This was texted to the number: #{params[:text]}"
+                        to:   "jonathan.bowman@ttigroupna.com, Lander.Isbell@ttigroupna.com, Dave.Breeze@ttigroupna.com",
+                        subject: "AUTO LITMUS MESSAGE",
+                        text:    "This was texted to our group number, 864 326-1314! --- #{params[:text]}"
                       }
 
     mg_client.send_message 'mg.rebootcreate.com', message_params
