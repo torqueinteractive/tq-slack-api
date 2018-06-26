@@ -189,4 +189,9 @@ class ApiController < ApplicationController
     end
   end
 
+  def litmus_response
+    logger.warn "Litmus was posted here!"
+    logger.warn params
+  end
+
 end

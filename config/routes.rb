@@ -9,5 +9,6 @@ Rails.application.routes.draw do
     post 'get-file-count', to: 'api#get_file_count'
     post 'destroy-files', to: 'api#destroy_files'
     post 'manage-interactions', to: 'api#manage_interactions'
+    post 'litmus-response', to: 'api#litmus_response'
   end
 end
