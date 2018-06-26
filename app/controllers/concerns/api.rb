@@ -8,7 +8,7 @@ module Api
       slack_request_params = {
         client_id: ENV["SLACK_CLIENT_ID"],
         scope: args[:scope],
-        redirect_uri: api_success_path
+        redirect_uri: api_success_url
       }
       uri = URI.parse("https://slack.com/oauth/authorize")
       uri.query = URI.encode_www_form(slack_request_params)
@@ -18,7 +18,7 @@ module Api
         client_id: ENV["SLACK_CLIENT_ID"],
         client_secret: ENV["SLACK_CLIENT_SECRET"],
         code: params[:code],
-        redirect_uri: api_success_path
+        redirect_uri: api_success_url
       }
       endpoint = "https://slack.com/api/oauth.access"
     when "list_files"
