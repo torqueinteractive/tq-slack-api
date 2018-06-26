@@ -190,9 +190,6 @@ class ApiController < ApplicationController
   end
 
   def litmus_response
-    logger.warn "Litmus was posted here!"
-    logger.warn params
-
     mg_client = Mailgun::Client.new ENV["MAILGUN_API_KEY"]
 
     message_params =  { from: "jonathanrbowman@me.com",
