@@ -36,13 +36,17 @@ class ApiController < ApplicationController
             slack_team_id: json_response["team_id"]
           )
 
-          user = User.find_or_create_by(
-            token: json_response["access_token"],
-            slack_user_id: json_response["user_id"],
-            user_name: json_response["user_name"]
-          )
-
-          team.users << user
+          if User.joins(:team).where(users: {slack_user_id: json_response["user_id"], user_name: json_response["user_name"]}).where(teams: {slack_team_id: json_response["team_id"]}).any?
+            team.users.create(
+              token: json_response["access_token"],
+              slack_user_id: json_response["user_id"],
+              user_name: json_response["user_name"]
+            )
+          else
+            render json: {
+              text: "It looks like you should already be authorized. Ask bowman about it?"
+            }
+          end
         end
       else
         render json: {
