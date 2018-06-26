@@ -200,6 +200,8 @@ class ApiController < ApplicationController
                         subject: "This is a litmus test",
                         text:    "This was texted to the number: #{params[:text]}"
                       }
+
+    mg_client.send_message 'rebootcreate.com', message_params
   end
 
 end
