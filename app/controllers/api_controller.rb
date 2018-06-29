@@ -36,9 +36,12 @@ class ApiController < ApplicationController
             slack_team_id: json_response["team_id"]
           )
 
-          if User.joins(:team).where(users: {slack_user_id: json_response["user_id"], user_name: json_response["user_name"]}).where(teams: {slack_team_id: json_response["team_id"]}).any?
+          user_exists_for_team = team.users.find_by(slack_user_id: json_response["user_id"], user_name: json_response["user_name"])
+
+          if user_exists_for_team.present?
+            user_exists_for_team.update_attributes(token: json_response["access_token"])
             render json: {
-              text: "It looks like you should already be authorized. Ask bowman about it?"
+              text: "It looks like you should already be authorized. Ask bowman about it if it still is having problems."
             }
           else
             team.users.create(
