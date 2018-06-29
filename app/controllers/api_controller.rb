@@ -36,9 +36,11 @@ class ApiController < ApplicationController
             slack_team_id: json_response["team_id"]
           )
 
-          user_exists_for_team = team.users.find_by(slack_user_id: json_response["user_id"], user_name: json_response["user_name"])
+          user_exists_for_team = team.users.find_by(slack_user_id: json_response["user_id"])
 
           if user_exists_for_team.present?
+            puts "User has ID of #{user_exists_for_team.id}"
+            puts "access token: #{json_response["access_token"]}"
             user_exists_for_team.update_attributes(token: json_response["access_token"])
             render json: {
               text: "It looks like you should already be authorized. Ask bowman about it if it still is having problems."
@@ -215,3 +217,7 @@ class ApiController < ApplicationController
   end
 
 end
+
+
+xoxp-2180625195-24943345777-329334458228-64e18fe241b645717efd3ff65936e740
+xoxp-2180625195-24943345777-388477232178-44fbed6f1c8b4f2169270d3807f56f98
