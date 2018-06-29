@@ -80,17 +80,23 @@ class ApiController < ApplicationController
           # the final total storage is based on Slack's free plan max size - 5GB
           total_storage_usage = 0
           files = JSON.parse(response.body)["files"]
-          files.each do |file|
-            total_storage_usage += file["size"]
+          if files.present?
+            files.each do |file|
+              total_storage_usage += file["size"]
+            end
+            total_storage_usage = total_storage_usage.to_f / 1048576
+
+            # this response includes their user name, so let's make sure we have it and it's up to date
+            user.update_attributes(user_name: params['user_name'])
+
+            render json: {
+              text: "*Hello, #{params['user_name']}.*\nYou've used *#{total_storage_usage.round(2)} MB* of storage for *#{files.count} files*. That's *#{((total_storage_usage/5000)*100).round(2)}%* of our capacity."
+            }
+          else
+            render json: {
+              text: "Couldn't get the correct response from Slack. Ask Bowman or try again."
+            }
           end
-          total_storage_usage = total_storage_usage.to_f / 1048576
-
-          # this response includes their user name, so let's make sure we have it and it's up to date
-          user.update_attributes(user_name: params['user_name'])
-
-          render json: {
-            text: "*Hello, #{params['user_name']}.*\nYou've used *#{total_storage_usage.round(2)} MB* of storage for *#{files.count} files*. That's *#{((total_storage_usage/5000)*100).round(2)}%* of our capacity."
-          }
         else
           render json: {
             text: "Couldn't get the correct response from Slack. Ask Bowman or try again."
