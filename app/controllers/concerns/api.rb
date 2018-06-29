@@ -35,6 +35,13 @@ module Api
         file: args[:file]
       }
       endpoint = "https://slack.com/api/files.delete"
+    when "litmus_bot_post"
+      slack_request_params = {
+        token: args[:token],
+        channel: args[:channel],
+        text: args[:text]
+      }
+      endpoint = "https://slack.com/api/chat.postMessage"
     end
 
     endpoint = args[:endpoint] || endpoint

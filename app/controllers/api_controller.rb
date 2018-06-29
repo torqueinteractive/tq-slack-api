@@ -39,8 +39,6 @@ class ApiController < ApplicationController
           user_exists_for_team = team.users.find_by(slack_user_id: json_response["user_id"])
 
           if user_exists_for_team.present?
-            puts "User has ID of #{user_exists_for_team.id}"
-            puts "access token: #{json_response["access_token"]}"
             user_exists_for_team.update_attributes(token: json_response["access_token"])
             render json: {
               text: "It looks like you should already be authorized. Ask bowman about it if it still is having problems."
@@ -205,15 +203,26 @@ class ApiController < ApplicationController
   end
 
   def litmus_response
-    mg_client = Mailgun::Client.new ENV["MAILGUN_API_KEY"]
+    litmus_channel_id = "GBGA07NQK"
+    litmus_bot = Team.find_by(name: "Torque").users.find_by(user_name: "litmus_alertron")
 
-    message_params =  { from:    "jonathanrbowman@me.com",
-                        to:      "jonathan.bowman@ttigroupna.com, Dave.Breeze@ttigroupna.com, marc.ludena@ttigroupna.com, matt.bainton@ttigroupna.com",
-                        subject: "AUTO FORWARDED MESSAGE",
-                        text:    "Hey! This was texted to our group number, (864) 326-1314, from phone number #{params[:from]}! --- #{params[:text]}"
-                      }
+    slack_api_request(
+                 type: "litmus_bot_post",
+                 token: litmus_bot.token,
+                 channel: litmus_channel_id,
+                 text: "User at number #{params[:from]} initiated login. #{params[:text]}"
+               )
 
-    mg_client.send_message 'mg.rebootcreate.com', message_params
+    # mg_client = Mailgun::Client.new ENV["MAILGUN_API_KEY"]
+    #
+    # message_params =  { from:    "jonathanrbowman@me.com",
+    #                     to:      "jonathan.bowman@ttigroupna.com, Dave.Breeze@ttigroupna.com, marc.ludena@ttigroupna.com, matt.bainton@ttigroupna.com",
+    #                     subject: "AUTO FORWARDED MESSAGE",
+    #                     text:    "Hey! This was texted to our group number, (864) 326-1314, from phone number #{params[:from]}! --- #{params[:text]}"
+    #                   }
+    #
+    # mg_client.send_message 'mg.rebootcreate.com', message_params
+
   end
 
 end
