@@ -213,7 +213,7 @@ class ApiController < ApplicationController
                  token: litmus_bot.token,
                  channel: litmus_channel_id,
                  as_user: litmus_bot.slack_user_id,
-                 text: "Litmus login was initiated. #{params[:text]}"
+                 text: "<!channel> Litmus login was initiated. #{params[:text]}"
                )
   end
 
