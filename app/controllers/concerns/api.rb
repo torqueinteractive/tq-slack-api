@@ -39,6 +39,7 @@ module Api
       slack_request_params = {
         token: args[:token],
         channel: args[:channel],
+        as_user: args[:as_user],
         text: args[:text]
       }
       endpoint = "https://slack.com/api/chat.postMessage"
